@@ -1,0 +1,3 @@
+john.doe@example.com password1234
+mary@gmail.com goodpassword
+
