@@ -26,33 +26,9 @@ int main(int argc, char *argv[]) {
 
 void handle_client(int fd) {
    ///test
-    FILE *fp;
-    int c;
-    fp = fopen ("file.txt", "w+");
-    fprintf(fp, "%s %s %s %d", "We", "are", "in", 2012);
-    fclose(fp);
-    fp = fopen("users.txt","r");
-    while(1) {
-        c = fgetc(fp);
-        if( feof(fp) ) {
-            break ;
-        }
-        printf("%c", c);
-    }
-    fclose(fp);
-    char* filename = "users.txt";
+   int i= is_valid_user("john.doe@example.com", NULL);
+    printf("%i",i);
     
-  //  FILE *fp=fopen(filename,"r");
-    if(fp==NULL){
-        printf("feelsbad\n");
-    }
-    char user[30];
-    while(1){
-    int ret=fscanf(fp, "%s",user);
-    printf("user\n");
-    printf("%s",user);
-    }
-  ///test
     char msg[100] = "220 Welcome to local host, SMTP Server \n";
     write(fd, msg, strlen(msg));
    net_buffer_t netbuffer= nb_create(fd, MAX_LINE_LENGTH);
@@ -68,6 +44,11 @@ void handle_client(int fd) {
             char msg[100] = "221 local host Service closing transmission channel \n";
             write(fd, msg, strlen(msg));
             break;
+        }
+        ///NOOP Command
+        if(strncmp(data,"NOOP",4)==0){
+            char msg[100] = "250 OK  \n";
+            write(fd, msg, strlen(msg));
         }
         if(strncmp(data,"HELO",4)==0){
             char msg[100] = "250 HELO command recieved! Hello! \n";
