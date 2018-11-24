@@ -25,6 +25,24 @@ int main(int argc, char *argv[]) {
 }
 
 void handle_client(int fd) {
-  
+    char msg[100] = "220 Welcome to local host, SMTP Server \n";
+    write(fd, msg, strlen(msg));
+    
+    char data[512];
+    while(read(fd,data,512))
+    {
+        
+        if(strncmp(data,"HELO",4)==0){
+            char msg[100] = "HELO command recieved! Hello! \n";
+            write(fd, msg, strlen(msg));
+        }
+        if(strncmp(data,"MAIL",4)==0){
+            char msg[100] = "MAIL command recieved! Hello! \n";
+            write(fd, msg, strlen(msg));
+            
+        }
+    }
+   
+    
   // TODO To be implemented
 }
