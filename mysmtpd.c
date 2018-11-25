@@ -25,19 +25,25 @@ int main(int argc, char *argv[]) {
 }
 
 void handle_client(int fd) {
+    ///CURRENT GOALS 1. LINK MAIL FROM TO DATA (?)? 2. TEST USER LIST 
    ///test
    //int i= is_valid_user("mary@gmail.com", NULL);
-   // printf("%i",i);
+ 
     char msg[100] = "220 Welcome to local host, SMTP Server \n";
     write(fd, msg, strlen(msg));
    net_buffer_t netbuffer= nb_create(fd, MAX_LINE_LENGTH);
     char data[512];
-    char helo;
+    //define checks
+    int helo=0;
      int FROMcheck=0;
+    int RCPTcheck=0;
     while(nb_read_line(netbuffer, data)){
         printf("%s",data);
+        
+        //create users but empty
+        
         user_list_t userlist=create_user_list();
-        // write(fd, data, strlen(data));
+        
         //unsupported commands
         if((strncmp(data,"EHLO",4)==0)||(strncmp(data,"RSET",4)==0)||(strncmp(data,"VRFY",4)==0)||(strncmp(data,"EXPN",4)==0)||(strncmp(data,"HELP",4)==0)){
             char msg[100] = "502 Unsupported Command \n";
@@ -53,15 +59,24 @@ void handle_client(int fd) {
             char msg[100] = "250 OK  \n";
             write(fd, msg, strlen(msg));
         }
+        ///HELO command
        else if(strncmp(data,"HELO",4)==0){
+           helo=1;
             char msg[100] = "250 HELO command recieved! Hello! This server supports HELO, NOOP, MAIL, DATA, QUIT \n";
             write(fd, msg, strlen(msg));
         }
+        ///MAIL command
        else if(strncmp(data,"MAIL",4)==0){
+           ///Error Check for HELO
+           if(helo!=1){
+               char msg[100] = "500 handshake with server! Send a HELO first \n";
+               write(fd, msg, strlen(msg));
+           }
             char output[512];
             if(strncmp(data,"MAIL FROM:<",11)==0){
                 FROMcheck=1;
                 int x=0;
+                int y=0;
                 // checks for < and >, takes data in between.
                 for(int i=0; i<strlen(data);i++){
                     if (data[i]=='<'){
@@ -69,38 +84,50 @@ void handle_client(int fd) {
                     }
                     if (data[i]=='>'){
                         x=0;
+                        y=1;
                     }
                     if(x==1){
-                        //test print first
                         output[i-11]=data[i];
                     }
                 }
-                
+                ///User did not put < or > .
+                if(x!=0&&y!=1){
+                    char msg[100] = "500 Wrong format! Format is MAIL FROM:<....> \n";
+                    write(fd, msg, strlen(msg));
+                }
+              //better formatting
                 char msg[100] = "250 MAIL command recieved from\n";
                 write(fd, msg, strlen(msg));
                 write(fd, output, strlen(output));
+                 char msg2[100] = "\n";
+                write(fd, msg2, strlen(msg));
             }
                 else{
                     char msg[100] = "500 Wrong format! Format is MAIL FROM:<....> \n";
                     write(fd, msg, strlen(msg));
                 }
             }
+        ///DATA Command
        else if(strncmp(data,"DATA",4)==0){
            if(strncmp(data,"DATA",4)>0){
-               char msg[100] = "354 Too Long! \n";
+               char msg[100] = "500 Too Long! Send DATA first \n";
                write(fd, msg, strlen(msg));
            }
-          
+           else if(RCPTcheck!=1){
+               char msg[100] = "500 Specify RCPT! \n";
+               write(fd, msg, strlen(msg));
+           }
+           else{
            static char template[] = "/tmp/myfileXXXXXX";
            char fname[4096];
            int fd2;
-           char msg[100] = "354 End Data in <CRLF> \n";
+           char msg[100] = "354 End Data in .\r \n";
            write(fd, msg, strlen(msg));
            strcpy(fname, template);
            fd2 = mkstemp(fname);
            printf("Filename is %s\n", fname);
            
-           while(strncmp(data,"<CRLF>",4)!=0){
+           while(strncmp(data,".",1)!=0){
                nb_read_line(netbuffer, data);
                write(fd2, data, strlen(data));
            }
@@ -113,8 +140,16 @@ void handle_client(int fd) {
            write(fd, msg2, strlen(msg));
            close(fd2);                /* Close file */
            unlink(fname);                /* Remove it */
+           }
        }
+        ///RCPT Function
         else if(strncmp(data,"RCPT",4)==0){
+            ///If FROM is not used, first use from
+            if(FROMcheck!=1){
+                char msg2[100] = "500 Error! Specify FROM\n";
+                write(fd, msg2, strlen(msg));
+            }
+            else{
             char output[512];
             if(strncmp(data,"RCPT TO:<",9)==0){
                 int x=0;
@@ -134,6 +169,7 @@ void handle_client(int fd) {
                     add_user_to_list(&userlist, output);
                     char msg[100] = "250 OK \n";
                     write(fd, msg, strlen(msg));
+                    RCPTcheck=1;
                 }
                 char msg[100] = "550 No such user here \n";
                 write(fd, msg, strlen(msg));
@@ -143,6 +179,9 @@ void handle_client(int fd) {
                 char msg[100] = "500 Wrong format! Format is RCPT FROM:<....> \n";
                 write(fd, msg, strlen(msg));
             }
+                
+            }
+            
         }
        else if(strlen(data)>MAX_LINE_LENGTH){
             char msg[100] = "500 Line too long! \n";
