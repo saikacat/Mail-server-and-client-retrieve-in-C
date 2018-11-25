@@ -27,8 +27,12 @@ int main(int argc, char *argv[]) {
 void handle_client(int fd) {
     ///CURRENT GOALS 1. LINK MAIL FROM TO DATA (?)? 2. TEST USER LIST 
    ///test
-   //int i= is_valid_user("mary@gmail.com", NULL);
- 
+   int i= is_valid_user("john.doe@example.com", NULL);
+    printf("%i",i);
+     i= is_valid_user("john.do@example.com", NULL);
+    printf("%i",i);
+     i= is_valid_user("mary.smith@example.com", NULL);
+    printf("%i",i);
     char msg[100] = "220 Welcome to local host, SMTP Server \n";
     write(fd, msg, strlen(msg));
    net_buffer_t netbuffer= nb_create(fd, MAX_LINE_LENGTH);
@@ -96,11 +100,13 @@ void handle_client(int fd) {
                     write(fd, msg, strlen(msg));
                 }
               //better formatting
+                else{
                 char msg[100] = "250 MAIL command recieved from\n";
                 write(fd, msg, strlen(msg));
                 write(fd, output, strlen(output));
                  char msg2[100] = "\n";
                 write(fd, msg2, strlen(msg));
+                }
             }
                 else{
                     char msg[100] = "500 Wrong format! Format is MAIL FROM:<....> \n";
@@ -165,15 +171,16 @@ void handle_client(int fd) {
                         output[i-9]=data[i];
                     }
                 }
-                if(is_valid_user(output, NULL)){
+                if(is_valid_user(output, NULL)!=0){
                     add_user_to_list(&userlist, output);
                     char msg[100] = "250 OK \n";
                     write(fd, msg, strlen(msg));
                     RCPTcheck=1;
-                }
+                }else{
                 char msg[100] = "550 No such user here \n";
                 write(fd, msg, strlen(msg));
                 write(fd, output, strlen(output));
+                }
             }
             else{
                 char msg[100] = "500 Wrong format! Format is RCPT FROM:<....> \n";

@@ -25,6 +25,6 @@ int main(int argc, char *argv[]) {
 }
 
 void handle_client(int fd) {
-  
+  //QUIT
   // TODO To be implemented
 }
