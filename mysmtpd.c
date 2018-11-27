@@ -27,12 +27,7 @@ int main(int argc, char *argv[]) {
 void handle_client(int fd) {
     ///CURRENT GOALS 1. LINK MAIL FROM TO DATA (?)? 2. TEST USER LIST 
    ///test
-   int i= is_valid_user("john.doe@example.com", NULL);
-    printf("%i",i);
-     i= is_valid_user("john.do@example.com", NULL);
-    printf("%i",i);
-     i= is_valid_user("mary.smith@example.com", NULL);
-    printf("%i",i);
+ 
     char msg[100] = "220 Welcome to local host, SMTP Server \n";
     write(fd, msg, strlen(msg));
    net_buffer_t netbuffer= nb_create(fd, MAX_LINE_LENGTH);
@@ -46,7 +41,7 @@ void handle_client(int fd) {
         
         //create users but empty
         
-        user_list_t userlist=create_user_list();
+        user_list_t userlist;
         
         //unsupported commands
         if((strncmp(data,"EHLO",4)==0)||(strncmp(data,"RSET",4)==0)||(strncmp(data,"VRFY",4)==0)||(strncmp(data,"EXPN",4)==0)||(strncmp(data,"HELP",4)==0)){
@@ -63,6 +58,11 @@ void handle_client(int fd) {
             char msg[100] = "250 OK  \n";
             write(fd, msg, strlen(msg));
         }
+       else if(strncmp(data,"cust",4)==0){
+           user_list_check(userlist);
+           char msg[100] = "250 OK  \n";
+           write(fd, msg, strlen(msg));
+       }
         ///HELO command
        else if(strncmp(data,"HELO",4)==0){
            helo=1;
@@ -124,9 +124,10 @@ void handle_client(int fd) {
                write(fd, msg, strlen(msg));
            }
            else{
-           static char template[] = "/tmp/myfileXXXXXX";
+           static char template[] = "./myfileXXXXXX";
            char fname[4096];
            int fd2;
+               
            char msg[100] = "354 End Data in .\r \n";
            write(fd, msg, strlen(msg));
            strcpy(fname, template);
@@ -137,15 +138,19 @@ void handle_client(int fd) {
                nb_read_line(netbuffer, data);
                write(fd2, data, strlen(data));
            }
+           
            /*
            lseek(fd2, 0L, SEEK_SET);
            n = read(fd2, buf, sizeof(buf));         Read data back; NOT '\0' terminated!
            printf("Got back: %.*s", n, buf);    /* Print it out for verification */
+               
            save_user_mail(fname, userlist);
+               
            char msg2[100] = "250 OK \n";
            write(fd, msg2, strlen(msg));
-           close(fd2);                /* Close file */
-           unlink(fname);                /* Remove it */
+           close(fd2);
+           unlink(fname);
+            
            }
        }
         ///RCPT Function
@@ -156,9 +161,10 @@ void handle_client(int fd) {
                 write(fd, msg2, strlen(msg));
             }
             else{
-            char output[512];
+                char output[512]="";
             if(strncmp(data,"RCPT TO:<",9)==0){
                 int x=0;
+                int y=0;
                 // checks for < and >, takes data in between.
                 for(int i=0; i<strlen(data);i++){
                     if (data[i]=='<'){
@@ -166,11 +172,18 @@ void handle_client(int fd) {
                     }
                     if (data[i]=='>'){
                         x=0;
+                        y=1;
                     }
                     if(x==1){
                         output[i-9]=data[i];
                     }
                 }
+                ///User did not put < or > .
+                if(x!=0&&y!=1){
+                    char msg[100] = "500 Wrong format! Format is RCPT FROM:<....> \n";
+                    write(fd, msg, strlen(msg));
+                }
+                else {
                 if(is_valid_user(output, NULL)!=0){
                     add_user_to_list(&userlist, output);
                     char msg[100] = "250 OK \n";
@@ -182,11 +195,8 @@ void handle_client(int fd) {
                 write(fd, output, strlen(output));
                 }
             }
-            else{
-                char msg[100] = "500 Wrong format! Format is RCPT FROM:<....> \n";
-                write(fd, msg, strlen(msg));
+           
             }
-                
             }
             
         }

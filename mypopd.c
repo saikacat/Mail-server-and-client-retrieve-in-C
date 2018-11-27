@@ -25,6 +25,7 @@ int main(int argc, char *argv[]) {
 }
 
 void handle_client(int fd) {
+    //strcasecmp()
   //QUIT
   // TODO To be implemented
 }
