@@ -72,6 +72,17 @@ int is_valid_user(const char *username, const char *password) {
   char pw_file[MAX_PASSWORD_SIZE+1];
   
   while (fscanf(file_ptr, "%s%s", user_file, pw_file) == 2) {
+       if(password!=NULL){
+      printf("this is inner function \n%s\n",pw_file);
+   int p= sizeof(pw_file);
+      printf("pwfile size %i\n",p );
+     p= sizeof(password);
+      printf("password size %i\n",p );
+      strcmp(password, pw_file);
+     
+      printf("string of pwfile:%s\n",pw_file);
+      printf("string of password:%s\n",password);
+      }
     if (!strcasecmp(username, user_file))
       return password == NULL || !strcmp(password, pw_file);
   }
