@@ -39,6 +39,10 @@ void handle_client(int fd) {
     while(nb_read_line(netbuffer, data)){
         printf("%s",data);
         
+        char buffer[strlen(data)];
+        memcpy(buffer, data, strlen(data));
+        char* p;
+        p=buffer;
         //create users but empty
         
         user_list_t userlist;
@@ -48,29 +52,29 @@ void handle_client(int fd) {
             char msg[100] = "502 Unsupported Command \n";
             write(fd, msg, strlen(msg));
         }
-        else if(strncmp(data,"QUIT",4)==0){
+        else if(strncmp(p,"QUIT",4)==0){
             char msg[100] = "221 local host Service closing transmission channel \n";
             write(fd, msg, strlen(msg));
             break;
         }
         ///NOOP Command
-       else if(strncmp(data,"NOOP",4)==0){
+       else if(strncmp(p,"NOOP",4)==0){
             char msg[100] = "250 OK  \n";
             write(fd, msg, strlen(msg));
         }
-       else if(strncmp(data,"cust",4)==0){
+       else if(strncmp(p,"cust",4)==0){
            user_list_check(userlist);
            char msg[100] = "250 OK  \n";
            write(fd, msg, strlen(msg));
        }
         ///HELO command
-       else if(strncmp(data,"HELO",4)==0){
+       else if(strncmp(p,"HELO",4)==0){
            helo=1;
             char msg[100] = "250 HELO command recieved! Hello! This server supports HELO, NOOP, MAIL, DATA, QUIT \n";
             write(fd, msg, strlen(msg));
         }
         ///MAIL command
-       else if(strncmp(data,"MAIL",4)==0){
+       else if(strncmp(p,"MAIL",4)==0){
            ///Error Check for HELO
            if(helo!=1){
                char msg[100] = "500 handshake with server! Send a HELO first \n";
@@ -114,8 +118,8 @@ void handle_client(int fd) {
                 }
             }
         ///DATA Command
-       else if(strncmp(data,"DATA",4)==0){
-           if(strncmp(data,"DATA",4)>0){
+       else if(strncmp(p,"DATA",4)==0){
+           if(strncmp(p,"DATA",4)>0){
                char msg[100] = "500 Too Long! Send DATA first \n";
                write(fd, msg, strlen(msg));
            }
@@ -134,9 +138,9 @@ void handle_client(int fd) {
            fd2 = mkstemp(fname);
            printf("Filename is %s\n", fname);
            
-           while(strncmp(data,".",1)!=0){
-               nb_read_line(netbuffer, data);
-               write(fd2, data, strlen(data));
+           while(strncmp(p,".",1)!=0){
+               nb_read_line(netbuffer, p);
+               write(fd2, p, strlen(p));
            }
            
            /*
@@ -154,7 +158,7 @@ void handle_client(int fd) {
            }
        }
         ///RCPT Function
-        else if(strncmp(data,"RCPT",4)==0){
+        else if(strncmp(p,"RCPT",4)==0){
             ///If FROM is not used, first use from
             if(FROMcheck!=1){
                 char msg2[100] = "500 Error! Specify FROM\n";
@@ -162,20 +166,20 @@ void handle_client(int fd) {
             }
             else{
                 char output[512]="";
-            if(strncmp(data,"RCPT TO:<",9)==0){
+            if(strncmp(p,"RCPT TO:<",9)==0){
                 int x=0;
                 int y=0;
                 // checks for < and >, takes data in between.
                 for(int i=0; i<strlen(data);i++){
-                    if (data[i]=='<'){
+                    if (p[i]=='<'){
                         x=1;
                     }
-                    if (data[i]=='>'){
+                    if (p[i]=='>'){
                         x=0;
                         y=1;
                     }
                     if(x==1){
-                        output[i-9]=data[i];
+                        output[i-9]=p[i];
                     }
                 }
                 ///User did not put < or > .
@@ -200,7 +204,7 @@ void handle_client(int fd) {
             }
             
         }
-       else if(strlen(data)>MAX_LINE_LENGTH){
+       else if(strlen(p)>MAX_LINE_LENGTH){
             char msg[100] = "500 Line too long! \n";
             write(fd, msg, strlen(msg));
         }

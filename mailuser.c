@@ -79,13 +79,7 @@ int is_valid_user(const char *username, const char *password) {
   return 0;
 }
 
-void user_list_check(user_list_t list) {
-    while (list) {
-        user_list_t next = list->next;
-        printf(list->user);
-        list = next;
-    }
-}
+
 
 /** Creates a new, empty, list of users.
  * 
