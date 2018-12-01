@@ -81,7 +81,7 @@ void handle_client(int fd) {
         }
         
         else if(strncasecmp(p, "pass",4)==0){
-            char password[256];
+            char password[256]="";
             char* pch = strtok (p," ");
             pch = strtok (NULL, " ");
          
@@ -97,6 +97,7 @@ void handle_client(int fd) {
                 write(fd, msg, strlen(msg));
             } else {
                 printf("user:%s\npass:%s",username,password);
+                memset(msg, 0, sizeof msg);
                 char msg[100] = "-ERR WRONG PASSWORD. \n";
                 write(fd, msg, strlen(msg));
             }
@@ -124,7 +125,7 @@ void handle_client(int fd) {
             char c=j+'0';
             send_string(fd, &c);
             unsigned long k=get_mail_list_size(load_user_mail(username));
-            send_string(fd, "%lu",k);
+            send_string(fd, " %lu",k);
             send_string(fd, "\n");
             }
             else{
@@ -135,9 +136,13 @@ void handle_client(int fd) {
         }
         else if(strncasecmp(p, "list",4)==0){
               if(user==1&&auth==1){
+                 
             char* pch = strtok (p," ");
             pch = strtok (NULL, " ");
-            int x= atoi(pch);
+        int x;
+          if(pch!=NULL)
+            x= atoi(pch);
+           // send_string(fd, " x is run ");
             //if we dont want to list all the emails
             if(pch!=NULL){
                 mail_list_t maillist= load_user_mail(username);
@@ -189,7 +194,7 @@ void handle_client(int fd) {
             char* pch = strtok (p," ");
             pch = strtok (NULL, " ");
             
-            char msg2[100] = "+OK \n";
+            char msg2[100] = "+OK ";
             write(fd, msg2, strlen(msg));
           
           
@@ -202,7 +207,7 @@ void handle_client(int fd) {
            unsigned long k= get_mail_item_size(get_mail_item(maillist, x));
          
             send_string(fd, "%lu",k);
-            send_string(fd, " octets");
+            send_string(fd, " octets \n");
 
             strcpy(mailname, "./mail.store/");
            
@@ -222,6 +227,8 @@ void handle_client(int fd) {
             }
             
             fclose(f);
+            char enddot[100] = ". \n";
+            write(fd, enddot, strlen(msg));
           //  return 0;
             //getline(msg, 100, filename);
             char msg[100] = "+OK That is your message \n";
@@ -232,14 +239,23 @@ void handle_client(int fd) {
             //getting number of deleted message.
             char* pch = strtok (p," ");
             pch = strtok (NULL, " ");
+            
             int x= atoi(pch);
+            //-1 for function
             x=x-1;
-            mail_list_t maillist=load_user_mail(username);
+              mail_list_t maillist=load_user_mail(username);
             mark_mail_item_deleted( get_mail_item(maillist, x));
+            //+1 for user to see
+            x=x+1;
+             char c=x+'0';
+          
             
-            char msg[100] = "+OK Deleted messages \n";
             
-            write(fd, msg, strlen(msg));
+            char msg[100] = "+OK message ";
+            send_string(fd, msg);
+            send_string(fd, &c);
+            send_string(fd, " deleted \n");
+           
           
         }
        else if(strncasecmp(data, "rset",4)==0){

@@ -90,8 +90,6 @@ int is_valid_user(const char *username, const char *password) {
   return 0;
 }
 
-
-
 /** Creates a new, empty, list of users.
  * 
  *  Returns: A user_list_t object with no users.
@@ -110,7 +108,7 @@ user_list_t create_user_list(void) {
  */
 void add_user_to_list(user_list_t *list, const char *username) {
   user_list_t new_list = malloc(sizeof(struct user_list));
-  new_list->user = strdup(username);
+    new_list->user = strdup(username);
   new_list->next = *list;
   *list = new_list;
 }
@@ -147,11 +145,9 @@ void save_user_mail(const char *basefile, user_list_t users) {
     // Create recipient directory if it doesn't exist yet (error ignored)
     int i = 0;
     sprintf(mail_file, MAIL_BASE_DIRECTORY "/%s", users->user);
-    int q=mkdir(mail_file, 0777);
-      printf("/n this is result of mkdir. %i",q);
-    
+      mkdir(mail_file, 0777);
     // Tries to create a file called 0.mail, if it exists tries 1.mail, and so on
-    do {printf("running");
+    do {
       sprintf(mail_file, MAIL_BASE_DIRECTORY "/%s/%d" MAIL_FILE_SUFFIX, users->user, i++);
     } while (link(basefile, mail_file) < 0 && errno == EEXIST);
   }
