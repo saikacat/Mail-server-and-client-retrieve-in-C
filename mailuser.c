@@ -73,15 +73,14 @@ int is_valid_user(const char *username, const char *password) {
   
   while (fscanf(file_ptr, "%s%s", user_file, pw_file) == 2) {
        if(password!=NULL){
-      printf("this is inner function \n%s\n",pw_file);
+     
    int p= sizeof(pw_file);
-      printf("pwfile size %i\n",p );
+    
      p= sizeof(password);
-      printf("password size %i\n",p );
+     
       strcmp(password, pw_file);
      
-      printf("string of pwfile:%s\n",pw_file);
-      printf("string of password:%s\n",password);
+    ;
       }
     if (!strcasecmp(username, user_file))
       return password == NULL || !strcmp(password, pw_file);
@@ -254,7 +253,7 @@ unsigned int get_mail_count(mail_list_t list) {
  *           deleted.
  */
 mail_item_t get_mail_item(mail_list_t list, unsigned int pos) {
-  
+ 
   while (list) {
     if (!pos--)
       return list->item.deleted ? NULL : &list->item;

@@ -38,7 +38,6 @@ void handle_client(int fd) {
     //create null user list
     user_list_t userlist=create_user_list();
     while(nb_read_line(netbuffer, data)){
-        printf("%s",data);
         char buffer[strlen(data)];
         memcpy(buffer, data, strlen(data));
         char* p;
@@ -131,7 +130,7 @@ void handle_client(int fd) {
                 write(fd, msg, strlen(msg));
                 strcpy(fname, template);
                 fd2 = mkstemp(fname);
-                printf("Filename is %s\n", fname);
+            //    printf("Filename is %s\n", fname);
                 
                 while(strncmp(p,".",1)!=0){
                     nb_read_line(netbuffer, p);
